@@ -1,0 +1,62 @@
+# Production stack for gst.pratishthabridal.in on the shared Hostinger VPS (/opt/gst-invoice).
+# The host nginx owns :80/:443 for ~15 other sites + mail, so this stack binds ONLY to 127.0.0.1
+# and the host nginx reverse-proxies the domain to it. `db` is not published at all.
+#
+# Required env (/opt/gst-invoice/.env — never committed): POSTGRES_PASSWORD, JWT_SECRET, SEED_SUPERADMIN_PASSWORD
+# Optional: WEB_PORT (default 8095), PUBLIC_URL, SEED_SUPERADMIN_USERNAME, SEED_DEMO
+
+name: gst-invoice
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gst
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: gst
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U gst -d gst']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://gst:${POSTGRES_PASSWORD}@db:5432/gst
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      CORS_ORIGIN: ${PUBLIC_URL:-https://gst.pratishthabridal.in}
+      PUBLIC_URL: ${PUBLIC_URL:-https://gst.pratishthabridal.in}
+      UPLOAD_DIR: /app/apps/api/uploads
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SEED_SUPERADMIN_USERNAME: ${SEED_SUPERADMIN_USERNAME:-superadmin}
+      SEED_SUPERADMIN_PASSWORD: ${SEED_SUPERADMIN_PASSWORD:?set SEED_SUPERADMIN_PASSWORD}
+      SEED_DEMO: ${SEED_DEMO:-false}
+    volumes:
+      - api-uploads:/app/apps/api/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8095}:80'
+
+volumes:
+  db-data:
+  api-uploads:
