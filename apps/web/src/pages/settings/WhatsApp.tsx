@@ -59,7 +59,7 @@ export default function WhatsAppSettings() {
             <Field label="API URL"><input className="input" value={f.apiUrl} onChange={(e) => set('apiUrl', e.target.value)} /></Field>
             <Field label="Device / instance (if any)"><input className="input" autoComplete="off" name="wa-device" value={f.device} onChange={(e) => set('device', e.target.value)} placeholder="Leave blank unless your provider gave one" /></Field>
             <Field label="API token" hint={f.hasToken ? `Saved: ${f.tokenHint} — leave blank to keep` : 'Given by your WhatsApp API provider'} className="sm:col-span-2">
-              <input className="input" type="password" autoComplete="off" value={token} onChange={(e) => { setToken(e.target.value); if (e.target.value && !f.hasToken) set('enabled', true); }} placeholder={f.hasToken ? '••••••••' : ''} name="wa-token" autoComplete="new-password" />
+              <input className="input" type="password" value={token} onChange={(e) => { setToken(e.target.value); if (e.target.value && !f.hasToken) set('enabled', true); }} placeholder={f.hasToken ? '••••••••' : ''} name="wa-token" autoComplete="new-password" />
             </Field>
           </div>
           {status.data?.configured && (
