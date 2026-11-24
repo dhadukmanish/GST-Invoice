@@ -28,7 +28,7 @@ export default function WhatsAppSettings() {
     setTesting(true);
     try {
       const r = await api.post<{ ok: boolean; error?: string }>('/api/settings/whatsapp/test', { to: testTo });
-      r.ok ? toast.success('Test message sent') : toast.error(r.error ?? 'Could not send');
+      r.ok ? toast.success(f.enabled ? 'Test message sent' : 'Test sent — now turn ON "Use my own WhatsApp API account" and Save') : toast.error(r.error ?? 'Could not send');
       log.refetch();
     } catch (e) {
       toast.error(errText(e));
@@ -52,11 +52,14 @@ export default function WhatsAppSettings() {
         <div className="card space-y-3 p-4">
           <h3 className="text-sm font-semibold">WhatsApp API (optional)</h3>
           <Switch checked={f.enabled} onChange={(v) => set('enabled', v)} label="Use my own WhatsApp API account" />
+          {!f.enabled && (f.hasToken || token) && (
+            <div className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">Token is saved but this switch is <b>OFF</b> — invoices will not be sent automatically. Turn it on and press Save.</div>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="API URL"><input className="input" value={f.apiUrl} onChange={(e) => set('apiUrl', e.target.value)} /></Field>
-            <Field label="Device / instance (if any)"><input className="input" value={f.device} onChange={(e) => set('device', e.target.value)} /></Field>
+            <Field label="Device / instance (if any)"><input className="input" autoComplete="off" name="wa-device" value={f.device} onChange={(e) => set('device', e.target.value)} placeholder="Leave blank unless your provider gave one" /></Field>
             <Field label="API token" hint={f.hasToken ? `Saved: ${f.tokenHint} — leave blank to keep` : 'Given by your WhatsApp API provider'} className="sm:col-span-2">
-              <input className="input" type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} placeholder={f.hasToken ? '••••••••' : ''} />
+              <input className="input" type="password" autoComplete="off" value={token} onChange={(e) => { setToken(e.target.value); if (e.target.value && !f.hasToken) set('enabled', true); }} placeholder={f.hasToken ? '••••••••' : ''} name="wa-token" autoComplete="new-password" />
             </Field>
           </div>
           {status.data?.configured && (
