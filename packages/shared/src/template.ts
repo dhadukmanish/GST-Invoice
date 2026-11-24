@@ -211,7 +211,8 @@ export function upiQrSvg(upiId: string, payee: string, amount: number, note: str
 }
 
 function addressBlock(a: { address?: string; city?: string; stateCode?: string; pincode?: string }) {
-  const l2 = [a.city, stateName(a.stateCode), a.pincode].filter(Boolean).join(', ');
+  const addr = (a.address ?? '').toLowerCase();
+  const l2 = [a.city, stateName(a.stateCode), a.pincode].filter((x) => x && !addr.includes(String(x).toLowerCase())).join(', ');
   return [a.address ? nl(a.address) : '', esc(l2)].filter(Boolean).join('<br>');
 }
 
@@ -295,7 +296,7 @@ function renderPage(d: PrintData, cfg: TemplateConfig): string {
 @page{size:${cfg.pageSize === 'A5' ? 'A5' : 'A4'};margin:8mm}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:#fff}
-body{font-family:${cfg.fontFamily};font-size:${cfg.fontSize}px;color:${T};-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:${cfg.fontFamily};font-size:${cfg.fontSize}px;line-height:1.4;color:${T};-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sheet{width:${pageW};max-width:100%;margin:0 auto;padding:${minimal ? '8mm' : '6mm'};}
 .box{border:${bd};${modern ? 'border-radius:6px;overflow:hidden;' : ''}}
 .title{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;${modern ? `background:${P};color:#fff;` : `border-bottom:${bd};`}}
@@ -313,6 +314,7 @@ body{font-family:${cfg.fontFamily};font-size:${cfg.fontSize}px;color:${T};-webki
 .meta td{padding:1.5px 0;vertical-align:top}
 .meta td:first-child{color:#4b5563;padding-right:10px;white-space:nowrap}
 table.items{width:100%;border-collapse:collapse}
+table td,table th{line-height:1.35}
 table.items th{background:${minimal ? 'transparent' : modern ? `${P}14` : `${P}`};color:${minimal || modern ? P : '#fff'};font-weight:700;font-size:${cfg.fontSize - 1}px;padding:5px 6px;border-bottom:${minimal ? `2px solid ${P}` : bd};text-transform:uppercase;letter-spacing:.03em}
 table.items td{padding:5px 6px;vertical-align:top;border-bottom:${minimal ? '1px solid #e5e7eb' : modern ? '1px solid #eef0f3' : 'none'}}
 ${minimal || modern ? '' : 'table.items td+td,table.items th+th{border-left:' + bd + '}'}
@@ -332,7 +334,7 @@ table.tax th{background:#f3f4f6}
 .sign{display:flex;justify-content:space-between;align-items:flex-end;padding:8px 10px;border-top:${bd};min-height:70px}
 .sign img{max-height:48px;max-width:150px;display:block;margin-left:auto}
 .foot{text-align:center;color:#6b7280;font-size:${cfg.fontSize - 2}px;padding:6px}
-.stamp{display:inline-block;padding:1px 8px;border-radius:10px;font-size:${cfg.fontSize - 2}px;font-weight:700;text-transform:uppercase}
+.stamp{display:inline-block;line-height:1.5;padding:0 8px;border-radius:10px;font-size:${cfg.fontSize - 2}px;font-weight:700;text-transform:uppercase}
 .st-paid{background:#dcfce7;color:#166534}.st-partial{background:#fef3c7;color:#92400e}.st-unpaid{background:#fee2e2;color:#991b1b}.st-cancelled{background:#e5e7eb;color:#374151}
 @media print{.sheet{padding:0;width:auto}}
 </style></head><body><div class="sheet"><div class="box">
@@ -418,7 +420,7 @@ function renderThermal(d: PrintData, cfg: TemplateConfig): string {
   const logo = S.logo ? safeImg(c.logo) : '';
   const row = (k: string, v: string, b = false) => `<tr${b ? ' style="font-weight:800;font-size:1.15em"' : ''}><td>${k}</td><td class="r">${v}</td></tr>`;
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(inv.invoiceNo)}</title>
-<style>@page{size:${w} auto;margin:2mm}*{box-sizing:border-box}body{margin:0;background:#fff;font-family:${cfg.fontFamily};font-size:${cfg.fontSize}px;color:#000}
+<style>@page{size:${w} auto;margin:2mm}*{box-sizing:border-box}body{margin:0;background:#fff;font-family:${cfg.fontFamily};font-size:${cfg.fontSize}px;line-height:1.35;color:#000}
 .s{width:${w};max-width:100%;margin:0 auto;padding:3mm}.c{text-align:center}.r{text-align:right}hr{border:0;border-top:1px dashed #000;margin:5px 0}
 table{width:100%;border-collapse:collapse}td,th{padding:1px 0;vertical-align:top}th{text-align:left;border-bottom:1px dashed #000}.m{font-size:.9em}
 img.l{max-height:48px;max-width:60%}.qr svg{width:110px;height:110px}</style></head><body><div class="s">

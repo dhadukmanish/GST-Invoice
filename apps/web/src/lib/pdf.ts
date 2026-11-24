@@ -17,7 +17,7 @@ export async function htmlToPdf(html: string, opts: { thermal?: boolean } = {}):
     await Promise.all([...doc.images].map((img) => (img.complete ? Promise.resolve() : new Promise((r) => { img.onload = img.onerror = r; }))));
     const target = doc.body;
     iframe.style.height = `${target.scrollHeight + 20}px`;
-    const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: widthPx });
+    const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: widthPx, foreignObjectRendering: true });
     if (opts.thermal) {
       const wMm = 80;
       const hMm = (canvas.height * wMm) / canvas.width;
